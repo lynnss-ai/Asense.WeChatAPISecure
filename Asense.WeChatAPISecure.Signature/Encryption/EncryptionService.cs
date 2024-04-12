@@ -1,0 +1,68 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using Asense.WeChatAPISecure.Signature.Models;
+using Asense.WeChatAPISecure.Signature.Utils;
+using Newtonsoft.Json;
+
+namespace Asense.WeChatAPISecure.Signature.Encryption
+{
+    public class EncryptionService : IEncryptionService
+    {
+        /// <summary>
+        /// AES256_GCM数据加密
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<AesGcmEncryptResponse> AesGcmEncryption(AesGcmEncryptRequest request)
+        {
+            var dataDicObj = new Dictionary<string, object>();
+            if (request.Data != null)
+            {
+                string dataJson = JsonConvert.SerializeObject(request.Data, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                dataDicObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(dataJson);
+            }
+            dataDicObj["_n"] = RandomUtil.GenerateNonce();
+            dataDicObj["_appid"] = request.AppID;
+            dataDicObj["_timestamp"] = request.timeStamp;
+
+            string data = JsonConvert.SerializeObject(dataDicObj);
+
+            string aad = $"{request.UrlPath}|{request.AppID}|{request.timeStamp}|{request.AesSn}";
+            byte[] ivBytes = RandomUtil.GenerateRandomBytes(12);
+            byte[] aesKeyBytes = Convert.FromBase64String(aad);
+            byte[] aadBytes = Encoding.UTF8.GetBytes(aad);
+            byte[] dataBytes = Encoding.UTF8.GetBytes(data);
+
+            return AesGcmUtil.AesGcmEncryptData(aadBytes, aesKeyBytes, ivBytes, dataBytes);
+
+        }
+
+        /// <summary>
+        /// AES256_GCM数据解密
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<T> AesGcmDecrypt<T>(AesGcmDecryptRequest request)
+        {
+            T result = default(T);
+            string aad = $"{request.UrlPath}|{request.AppID}|{request.timeStamp}|{request.AesSn}";
+            byte[] aadBytes = Encoding.UTF8.GetBytes(aad);
+            byte[] aesKeyBytes = Convert.FromBase64String(request.AesKey);
+            byte[] ivBytes = Convert.FromBase64String(request.commonBaseParam.Iv);
+            byte[] dataBytes = Convert.FromBase64String(request.commonBaseParam.Data);
+            byte[] authTagBytes = Convert.FromBase64String(request.commonBaseParam.AuthTag);
+
+            string resultData = AesGcmUtil.AesGcmDecryptData(aadBytes, aesKeyBytes, ivBytes, dataBytes, authTagBytes);
+
+            result = JsonConvert.DeserializeObject<T>(resultData);
+
+            return result;
+
+        }
+    }
+}
