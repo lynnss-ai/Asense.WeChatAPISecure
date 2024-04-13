@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Asense.WeChatAPISecure.Signature.Encryption
 {
-    public class EncryptionService : IEncryptionService
+    public class EncryptService : IEncryptService
     {
         /// <summary>
         /// AES256_GCM数据加密
@@ -31,9 +31,9 @@ namespace Asense.WeChatAPISecure.Signature.Encryption
 
             string data = JsonConvert.SerializeObject(dataDicObj);
 
-            string aad = $"{request.UrlPath}|{request.AppID}|{request.timeStamp}|{request.AesSn}";
             byte[] ivBytes = RandomUtil.GenerateRandomBytes(12);
-            byte[] aesKeyBytes = Convert.FromBase64String(aad);
+            string aad = $"{request.UrlPath}|{request.AppID}|{request.timeStamp}|{request.AesSn}";
+            byte[] aesKeyBytes = Convert.FromBase64String(request.AesKey);
             byte[] aadBytes = Encoding.UTF8.GetBytes(aad);
             byte[] dataBytes = Encoding.UTF8.GetBytes(data);
 
@@ -49,7 +49,6 @@ namespace Asense.WeChatAPISecure.Signature.Encryption
         /// <returns></returns>
         public async Task<T> AesGcmDecrypt<T>(AesGcmDecryptRequest request)
         {
-            T result = default(T);
             string aad = $"{request.UrlPath}|{request.AppID}|{request.timeStamp}|{request.AesSn}";
             byte[] aadBytes = Encoding.UTF8.GetBytes(aad);
             byte[] aesKeyBytes = Convert.FromBase64String(request.AesKey);
@@ -59,7 +58,7 @@ namespace Asense.WeChatAPISecure.Signature.Encryption
 
             string resultData = AesGcmUtil.AesGcmDecryptData(aadBytes, aesKeyBytes, ivBytes, dataBytes, authTagBytes);
 
-            result = JsonConvert.DeserializeObject<T>(resultData);
+            var result = JsonConvert.DeserializeObject<T>(resultData);
 
             return result;
 

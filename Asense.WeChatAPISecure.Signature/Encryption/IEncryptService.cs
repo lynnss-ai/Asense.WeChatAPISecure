@@ -7,7 +7,7 @@ using Asense.WeChatAPISecure.Signature.Models;
 
 namespace Asense.WeChatAPISecure.Signature.Encryption
 {
-    public interface IEncryptionService
+    public interface IEncryptService
     {
         /// <summary>
         /// AES256_GCM数据加密

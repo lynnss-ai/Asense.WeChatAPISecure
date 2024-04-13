@@ -10,35 +10,6 @@ namespace Asense.WeChatAPISecure.Signature.Utils
 {
     public class RsaUtil
     {
-
-        /// <summary>
-        /// 读取私钥
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string ReadPrivateKey(string key)
-        {
-            key = key.Replace("-----BEGIN PRIVATE KEY-----", "")
-                     .Replace("-----END PRIVATE KEY-----", "")
-                     .Replace("\r", "")
-                     .Replace("\n", "").Trim();
-            return key;
-        }
-
-        /// <summary>
-        /// 读取Certificate
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string ReadCertificate(string key)
-        {
-            key = key.Replace("-----BEGIN CERTIFICATE-----", "")
-                     .Replace("-----END CERTIFICATE-----", "")
-                     .Replace("\r", "")
-                     .Replace("\n", "").Trim();
-            return key;
-        }
-
         /// <summary>
         /// 签名
         /// </summary>
@@ -51,13 +22,12 @@ namespace Asense.WeChatAPISecure.Signature.Utils
             string key = ReadPrivateKey(rsaPrivateKey);
             byte[] keyBytes = Convert.FromBase64String(key);
             byte[] payloadBytes = Convert.FromBase64String(payload);
-
-            using (RSACng rsa = new RSACng())
-            {
-                rsa.ImportPkcs8PrivateKey(keyBytes, out _);
-                byte[] sig = rsa.SignData(payloadBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-                sign = Convert.ToBase64String(sig);
-            }
+            
+            using RSA rsa = RSA.Create();
+            rsa.ImportPkcs8PrivateKey(keyBytes, out _);
+            byte[] sig = rsa.SignData(payloadBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+            sign = Convert.ToBase64String(sig);
+            
             return sign;
         }
 
@@ -77,12 +47,41 @@ namespace Asense.WeChatAPISecure.Signature.Utils
             byte[] payloadBytes = Convert.FromBase64String(payload);
 
             X509Certificate2 cert = new X509Certificate2(keyBytes);
-            using (RSA rsa = cert.GetRSAPublicKey())
+            RSA? rsa = cert.GetRSAPublicKey();
+            if (rsa != null)
             {
                 isSuccess = rsa.VerifyData(payloadBytes, signBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
             }
 
             return isSuccess;
+        }
+        
+        /// <summary>
+        /// 读取私钥
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private static string ReadPrivateKey(string key)
+        {
+            key = key.Replace("-----BEGIN PRIVATE KEY-----", "")
+                .Replace("-----END PRIVATE KEY-----", "")
+                .Replace("\r", "")
+                .Replace("\n", "").Trim();
+            return key;
+        }
+
+        /// <summary>
+        /// 读取Certificate
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private static string ReadCertificate(string key)
+        {
+            key = key.Replace("-----BEGIN CERTIFICATE-----", "")
+                .Replace("-----END CERTIFICATE-----", "")
+                .Replace("\r", "")
+                .Replace("\n", "").Trim();
+            return key;
         }
     }
 }

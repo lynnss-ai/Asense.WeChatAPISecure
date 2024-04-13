@@ -25,22 +25,19 @@ namespace Asense.WeChatAPISecure.Signature.Utils
         {
             try
             {
-                AesGcmEncryptResponse result = null;
-                using (AesGcm aesGcm = new AesGcm(aesKey))
+                using AesGcm aesGcm = new AesGcm(aesKey);
+                byte[] cipherText = new byte[data.Length];
+                byte[] authTag = new byte[16];
+                aesGcm.Encrypt(iv, data, cipherText, authTag, aad);
+
+                var result = new AesGcmEncryptResponse()
                 {
-                    byte[] cipherText = new byte[data.Length];
-                    byte[] authTag = new byte[16];
-                    aesGcm.Encrypt(iv, data, cipherText, authTag, aad);
+                    Iv = Convert.ToBase64String(iv).Replace("=", ""),
+                    Data = Convert.ToBase64String(cipherText),
+                    AuthTag = Convert.ToBase64String(authTag)
+                };
 
-                    result = new AesGcmEncryptResponse()
-                    {
-                        Iv = Convert.ToBase64String(iv).Replace("=", ""),
-                        Data = Convert.ToBase64String(cipherText),
-                        AuthTag = Convert.ToBase64String(authTag)
-                    };
-
-                    return result;
-                }
+                return result;
             }
             catch (Exception ex)
             {
@@ -63,13 +60,11 @@ namespace Asense.WeChatAPISecure.Signature.Utils
         {
             try
             {
-                using (AesGcm aesGcm = new AesGcm(aesKey))
-                {
-                    byte[] decryptText = new byte[data.Length];
+                using AesGcm aesGcm = new AesGcm(aesKey);
+                byte[] decryptText = new byte[data.Length];
 
-                    aesGcm.Decrypt(iv, data, authTag, decryptText, aad);
-                    return Encoding.UTF8.GetString(decryptText);
-                }
+                aesGcm.Decrypt(iv, data, authTag, decryptText, aad);
+                return Encoding.UTF8.GetString(decryptText);
             }
             catch (Exception ex)
             {

@@ -17,10 +17,8 @@ namespace Asense.WeChatAPISecure.Signature.Utils
         public static byte[] GenerateRandomBytes(int length)
         {
             byte[] randomBytes = new byte[length];
-            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
-            {
-                rng.GetBytes(randomBytes);
-            }
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
             return randomBytes;
         }
 
@@ -31,10 +29,8 @@ namespace Asense.WeChatAPISecure.Signature.Utils
         public static string GenerateNonce()
         {
             byte[] buffer = new byte[16];
-            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(buffer);
-            }
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+            rng.GetBytes(buffer);
             return Convert.ToBase64String(buffer).Replace("=", "");
         }
     }
