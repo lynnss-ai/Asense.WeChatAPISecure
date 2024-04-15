@@ -16,7 +16,7 @@ namespace Asense.WeChatAPISecure.Signature.Signature
         /// <returns>签名</returns>
         public async Task<string> RsaSignature(RsaSignatureRequest request)
         {
-            string sign = RsaUtil.RsaSign(request.RsaPrivateKey, 
+            string sign = RsaSignUtil.RsaSign(request.RsaPrivateKey, 
                 $"{request.UrlPath}\n{request.AppID}|{request.timeStamp}|{request.Data}");
             return sign;
         }
@@ -27,7 +27,7 @@ namespace Asense.WeChatAPISecure.Signature.Signature
         /// <returns>true:验证成功;false:验证失败</returns>
         public async Task<bool> RsaVerifySignature(RsaVerifySignatureRequest request)
         {
-            bool isSuccess = RsaUtil.VerifySign(request.RsaPubKey, request.sign,
+            bool isSuccess = RsaSignUtil.VerifySign(request.RsaPubKey, request.sign,
                 $"{request.UrlPath}\n{request.AppID}\n{request.timeStamp}\n{request.Data}");
             return isSuccess;
         }

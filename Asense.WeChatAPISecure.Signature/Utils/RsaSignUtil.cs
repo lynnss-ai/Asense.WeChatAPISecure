@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Asense.WeChatAPISecure.Signature.Utils
 {
-    public class RsaUtil
+    public class RsaSignUtil
     {
         /// <summary>
         /// 签名

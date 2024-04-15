@@ -6,39 +6,30 @@
 #### 代码中涉及到的内容为数据加解密 | 生成签名和验证签名 代码片段如下:
 ```
 - 加密
-AesGcmEncryptResponse result = null;
-using (AesGcm aesGcm = new AesGcm(aesKey))
+using AesGcm aesGcm = new AesGcm(aesKey);
+byte[] cipherText = new byte[data.Length];
+byte[] authTag = new byte[16];
+aesGcm.Encrypt(iv, data, cipherText, authTag, aad);
+var result = new AesGcmEncryptResponse()
 {
-    byte[] cipherText = new byte[data.Length];
-    byte[] authTag = new byte[16];
-    aesGcm.Encrypt(iv, data, cipherText, authTag, aad);
-
-    result = new AesGcmEncryptResponse()
-    {
-        Iv = Convert.ToBase64String(iv).Replace("=", ""),
-        Data = Convert.ToBase64String(cipherText),
-        AuthTag = Convert.ToBase64String(authTag)
-    };
-
-    return result;
-}
+    Iv = Convert.ToBase64String(iv).Replace("=", ""),
+    Data = Convert.ToBase64String(cipherText),
+    AuthTag = Convert.ToBase64String(authTag)
+};
+return result;
 
 - 解密
-using (AesGcm aesGcm = new AesGcm(aesKey))
-{
-    byte[] decryptText = new byte[data.Length];
+using AesGcm aesGcm = new AesGcm(aesKey);
+byte[] decryptText = new byte[data.Length];
 
-    aesGcm.Decrypt(iv, data, authTag, decryptText, aad);
-    return Encoding.UTF8.GetString(decryptText);
-}
+aesGcm.Decrypt(iv, data, authTag, decryptText, aad);
+return Encoding.UTF8.GetString(decryptText);
 
 - 数据签名
-using (RSACng rsa = new RSACng())
-{
-    rsa.ImportPkcs8PrivateKey(keyBytes, out _);
-    byte[] sig = rsa.SignData(payloadBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-    sign = Convert.ToBase64String(sig);
-}
+using RSA rsa = RSA.Create();
+rsa.ImportPkcs8PrivateKey(keyBytes, out _);
+byte[] sig = rsa.SignData(payloadBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
+sign = Convert.ToBase64String(sig);
 
 - 验证签名
 X509Certificate2 cert = new X509Certificate2(keyBytes);
