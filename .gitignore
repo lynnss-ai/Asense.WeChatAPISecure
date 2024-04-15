@@ -5,3 +5,8 @@
 /.vs
 /Asense.WeChatAPISecure.Signature/obj
 /Asense.WeChatAPISecure.Signature/bin/Debug/net8.0
+/.idea/.idea.Asense.WeChatAPISecure/.idea
+/Asense.WeChatAPISecure.API/bin/Debug/net8.0
+/Asense.WeChatAPISecure.API/obj
+/Asense.WeChatAPISecure.Test/bin/Debug/net8.0
+/Asense.WeChatAPISecure.Test/obj
